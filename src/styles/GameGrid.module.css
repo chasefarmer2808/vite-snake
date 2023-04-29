@@ -1,4 +1,22 @@
 .gameGrid {
   display: grid;
+  width: 100%;
   height: 100%;
+  grid-auto-rows: max-content;
+  max-width: var(--breakpoint-sm);
+  max-height: var(--breakpoint-sm);
+}
+
+@media only screen and (min-width: 350px) {
+  .gameGrid {
+    max-width: var(--breakpoint-md);
+    max-height: var(--breakpoint-md);
+  }
+}
+
+@media only screen and (min-width: 1550px) {
+  .gameGrid {
+    max-width: var(--breakpoint-lg);
+    max-height: var(--breakpoint-lg);
+  }
 }

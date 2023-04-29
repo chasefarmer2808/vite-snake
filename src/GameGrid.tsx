@@ -9,7 +9,7 @@ interface GridNode {
   hasFood: boolean;
 }
 
-const BOARD_SIZE = 50;
+const BOARD_SIZE = 15;
 
 const GameGrid: React.FC = () => {
   const [gridState, setGridState] = useState<GridNode[][]>([[]]);
@@ -38,7 +38,7 @@ const GameGrid: React.FC = () => {
   return (
     <div
       className={classes.gameGrid}
-      style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}
+      style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, auto)` }}
     >
       {gridState.map((gridRow) =>
         gridRow.map((gridItem) => <GridBox key={gridItem.id} />)
