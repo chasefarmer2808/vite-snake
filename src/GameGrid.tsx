@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import GridBox from "./GridBox";
 
+import classes from "./styles/GameGrid.module.css";
+
 interface GridNode {
   id: number;
   hasSnake: boolean;
   hasFood: boolean;
 }
 
-const BOARD_SIZE = 5;
+const BOARD_SIZE = 50;
 
 const GameGrid: React.FC = () => {
   const [gridState, setGridState] = useState<GridNode[][]>([[]]);
@@ -34,7 +36,10 @@ const GameGrid: React.FC = () => {
   }, []);
 
   return (
-    <div>
+    <div
+      className={classes.gameGrid}
+      style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}
+    >
       {gridState.map((gridRow) =>
         gridRow.map((gridItem) => <GridBox key={gridItem.id} />)
       )}
