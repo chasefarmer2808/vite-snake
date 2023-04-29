@@ -2,3 +2,7 @@
   border: 1px solid yellow;
   aspect-ratio: 1/1;
 }
+
+.snakeBox {
+  background-color: yellow;
+}
