@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import GridBox from "./GridBox";
 
 import classes from "./styles/GameGrid.module.css";
@@ -149,6 +149,8 @@ const GameGrid: React.FC = () => {
         gridRow.map((gridItem, col) => (
           <GridBox
             key={gridItem.id}
+            row={row}
+            col={col}
             hasSnakePiece={nodeHasSnakePiece(row, col)}
           />
         ))
