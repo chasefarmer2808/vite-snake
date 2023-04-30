@@ -2,6 +2,7 @@ import { useEffect, useReducer, useState } from "react";
 import GridBox from "./GridBox";
 
 import classes from "./styles/GameGrid.module.css";
+import useArrowKeyPress from "./hooks/useArrowKeyPress";
 
 interface GridNode {
   id: number;
@@ -14,7 +15,7 @@ interface SnakePiece {
   col: number;
 }
 
-enum Direction {
+export enum Direction {
   Left,
   Right,
   Up,
@@ -62,7 +63,6 @@ const moveSnakeOneUnit = (
         default:
           break;
       }
-      console.log(newPiece.col);
     } else {
       // Next, move all child pieces to its parent's previous location.
       prevHead = snake[index - 1];
@@ -77,7 +77,7 @@ const moveSnakeOneUnit = (
 const GameGrid: React.FC = () => {
   const [gridState, setGridState] = useState<GridNode[][]>([[]]);
   const [snake, dispatch] = useReducer(snakeReducer, [{ row: 1, col: 1 }]);
-  // const arrowPressed = useArrowKeyPress();
+  const arrowPress = useArrowKeyPress();
 
   useEffect(() => {
     // Init grid.
@@ -99,15 +99,17 @@ const GameGrid: React.FC = () => {
       grid.push(row);
     }
     setGridState(grid);
+  }, []);
 
+  useEffect(() => {
     // Init game interval.
     const gameInterval = setInterval(
-      () => dispatch({ type: "tick", payload: Direction.Right }),
+      () => dispatch({ type: "tick", payload: arrowPress.current }),
       1000
     );
 
     return () => clearInterval(gameInterval);
-  }, []);
+  }, [arrowPress]);
 
   const nodeHasSnakePiece = (row: number, col: number) => {
     let hasPiece = false;
