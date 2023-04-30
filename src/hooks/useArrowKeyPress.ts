@@ -1,5 +1,11 @@
 import { useRef, useEffect } from "react";
-import { Direction } from "../GameGrid";
+
+export enum Direction {
+  Left,
+  Right,
+  Up,
+  Down,
+}
 
 const useArrowKeyPress = () => {
   const keyPressRef = useRef<Direction>(Direction.Right);

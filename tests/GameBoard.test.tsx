@@ -1,9 +1,9 @@
 import { act, render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
-import GameGrid from "../src/GameGrid";
+import GameBoard from "../src/GameBoard";
 import { vi } from "vitest";
 
-describe("GameGrid", () => {
+describe("GameBoard", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -12,13 +12,17 @@ describe("GameGrid", () => {
   });
 
   it("renders a 15x15 grid", () => {
-    render(<GameGrid />);
+    render(<GameBoard />);
 
     expect(screen.getAllByRole("gridcell")).toHaveLength(15 * 15);
   });
 
-  it("initializes snake to one piece", () => {
-    render(<GameGrid />);
+  it("renders snake after first tick", () => {
+    render(<GameBoard />);
+
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
 
     expect(
       screen
@@ -28,14 +32,14 @@ describe("GameGrid", () => {
   });
 
   it("renders head of snake at row 1 col 1", () => {
-    render(<GameGrid />);
+    render(<GameBoard />);
 
     expect(screen.getByLabelText("row 1 col 1").classList).toHaveLength(2);
   });
 
   describe("Movement", () => {
     it("moves snake one unit to the left when no arrow keys pressed", () => {
-      render(<GameGrid />);
+      render(<GameBoard />);
 
       act(() => {
         vi.runOnlyPendingTimers();
@@ -47,7 +51,7 @@ describe("GameGrid", () => {
     });
 
     it("moves snake one unit up when up arrow pressed", () => {
-      render(<GameGrid />);
+      render(<GameBoard />);
 
       fireEvent.keyDown(window, { key: "ArrowUp" });
 
