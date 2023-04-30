@@ -2,7 +2,6 @@ import GridBox from "./GridBox";
 
 import classes from "./styles/GameGrid.module.css";
 import { GridCell } from "./GameBoard";
-import { useRef } from "react";
 
 interface Props {
   grid: GridCell[][];
