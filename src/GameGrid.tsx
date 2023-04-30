@@ -14,7 +14,13 @@ interface SnakePiece {
   col: number;
 }
 
-type SnakeAction = "tick" | "eat";
+enum Direction {
+  Left,
+  Right,
+  Up,
+  Down,
+}
+type SnakeAction = { type: "tick"; payload: Direction } | { type: "eat" };
 
 const BOARD_SIZE = 15;
 
@@ -22,22 +28,58 @@ const snakeReducer = (
   state: SnakePiece[],
   action: SnakeAction
 ): SnakePiece[] => {
-  switch (action) {
+  switch (action.type) {
     case "tick":
-      return state.map((piece) => ({ ...piece, col: piece.col++ }));
+      return moveSnakeOneUnit(state, action.payload);
     default:
       return state;
   }
 };
 
+const moveSnakeOneUnit = (
+  snake: SnakePiece[],
+  dir: Direction
+): SnakePiece[] => {
+  let prevHead = snake[0];
+
+  return snake.map((piece, index) => {
+    const newPiece = { ...piece };
+    if (index == 0) {
+      // First, move head based on dir.
+      switch (dir) {
+        case Direction.Left:
+          newPiece.col--;
+          break;
+        case Direction.Right:
+          newPiece.col++;
+          break;
+        case Direction.Up:
+          newPiece.row--;
+          break;
+        case Direction.Down:
+          newPiece.row++;
+          break;
+        default:
+          break;
+      }
+      console.log(newPiece.col);
+    } else {
+      // Next, move all child pieces to its parent's previous location.
+      prevHead = snake[index - 1];
+      piece.row = prevHead.row;
+      piece.col = prevHead.col;
+    }
+
+    return newPiece;
+  });
+};
+
 const GameGrid: React.FC = () => {
   const [gridState, setGridState] = useState<GridNode[][]>([[]]);
   const [snake, dispatch] = useReducer(snakeReducer, [{ row: 1, col: 1 }]);
+  // const arrowPressed = useArrowKeyPress();
 
   useEffect(() => {
-    // Init game interval.
-    const gameInterval = setInterval(() => dispatch("tick"), 1000);
-
     // Init grid.
     const grid = Array<GridNode[]>();
     let count = 0;
@@ -57,6 +99,12 @@ const GameGrid: React.FC = () => {
       grid.push(row);
     }
     setGridState(grid);
+
+    // Init game interval.
+    const gameInterval = setInterval(
+      () => dispatch({ type: "tick", payload: Direction.Right }),
+      1000
+    );
 
     return () => clearInterval(gameInterval);
   }, []);
