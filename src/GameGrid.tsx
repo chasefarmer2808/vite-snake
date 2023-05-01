@@ -37,6 +37,7 @@ const GameGrid: React.FC<Props> = ({ grid }) => {
             row={row}
             col={col}
             hasSnakePiece={gridCell.hasSnake}
+            hasFood={gridCell.hasFood}
           />
         ))
       )}

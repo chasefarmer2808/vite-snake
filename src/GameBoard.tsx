@@ -16,6 +16,11 @@ interface SnakePiece {
   col: number;
 }
 
+interface FoodPiece {
+  row: number;
+  col: number;
+}
+
 // Eventually, this can take a difficulty to change the size of the grid.
 const createInitialGrid = () => {
   const grid = Array<GridCell[]>();
@@ -37,46 +42,74 @@ const createInitialGrid = () => {
   return grid;
 };
 
+const getRandomInt = (max: number): number => {
+  return Math.floor(Math.random() * max);
+};
+
 const GameBoard: React.FC = () => {
   const [grid, setGrid] = useState<GridCell[][]>(createInitialGrid());
-  const snakeRef = useRef<SnakePiece[]>([{ row: 1, col: 1 }]);
+  const snakeRef = useRef<SnakePiece[]>([
+    { row: 1, col: 1 },
+    { row: 1, col: 0 },
+  ]);
+  const foodRef = useRef<FoodPiece>({ row: 3, col: 3 }); // TODO: Randomize food position.
   const arrowPress = useArrowKeyPress();
 
   const updateSnakePos = useCallback(() => {
-    const prevSnake = snakeRef.current;
+    snakeRef.current = snakeRef.current.map((piece, index) => {
+      const newPiece = { ...piece };
 
-    snakeRef.current = prevSnake.map((piece, index) => {
       if (index == 0) {
         // First, move head based on dir.
         switch (arrowPress.current) {
           case Direction.Left:
-            piece.col--;
+            newPiece.col--;
             break;
           case Direction.Right:
-            piece.col++;
+            newPiece.col++;
             break;
           case Direction.Up:
-            piece.row--;
+            newPiece.row--;
             break;
           case Direction.Down:
-            piece.row++;
+            newPiece.row++;
             break;
           default:
             break;
         }
       } else {
         // Next, move all child pieces to its parent's previous location.
-        piece.row = prevSnake[index - 1].row;
-        piece.col = prevSnake[index - 1].col;
+        newPiece.row = snakeRef.current[index - 1].row;
+        newPiece.col = snakeRef.current[index - 1].col;
       }
-
-      return piece;
+      return newPiece;
     });
   }, [arrowPress]);
 
+  const updateFoodPosRandom = useCallback(() => {
+    foodRef.current = {
+      row: getRandomInt(grid.length - 1),
+      col: getRandomInt(grid.length - 1),
+    };
+  }, [grid.length]);
+
   useEffect(() => {
+    const didEatFood = (): boolean => {
+      const snakeHead = snakeRef.current[0];
+      return (
+        snakeHead.row == foodRef.current.row &&
+        snakeHead.col == foodRef.current.col
+      );
+    };
+
     const handleGameTick = () => {
+      const tail = { ...snakeRef.current[snakeRef.current.length - 1] };
       updateSnakePos();
+
+      if (didEatFood()) {
+        snakeRef.current.push(tail);
+        updateFoodPosRandom();
+      }
 
       setGrid((prevGrid) =>
         prevGrid.map((gridRow) =>
@@ -87,17 +120,21 @@ const GameBoard: React.FC = () => {
                   piece.row == gridCell.row && piece.col == gridCell.col
               ).length == 1;
 
-            return { ...gridCell, hasSnake: hasSnake };
+            const hasFood =
+              foodRef.current.row == gridCell.row &&
+              foodRef.current.col == gridCell.col;
+
+            return { ...gridCell, hasSnake, hasFood };
           })
         )
       );
     };
 
     // Init game interval.
-    const gameInterval = setInterval(handleGameTick, 1000);
+    const gameInterval = setInterval(handleGameTick, 500);
 
     return () => clearInterval(gameInterval);
-  }, [updateSnakePos]);
+  }, [updateSnakePos, updateFoodPosRandom]);
 
   return (
     <main>
