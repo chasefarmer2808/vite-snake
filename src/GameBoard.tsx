@@ -24,6 +24,7 @@ const GameBoard: React.FC = () => {
     setSnake([{ row: 1, col: 1 }]);
     setFood({ row: 3, col: 3 });
     setIsGameOver(false);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" })); // Keep initial direction consistent
   };
 
   const updateSnakePos = useCallback(
