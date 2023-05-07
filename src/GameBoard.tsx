@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import GameGrid from "./GameGrid";
 import useArrowKeyPress, { Direction } from "./hooks/useArrowKeyPress";
-import { BOARD_SIZE } from "./const";
+import { BOARD_SIZE, MIN_DELAY, START_DELAY } from "./const";
 import GameOverDialog from "./GameOverDialog";
 import classes from "./styles/GameBoard.module.css";
 
@@ -18,12 +18,14 @@ const GameBoard: React.FC = () => {
   const [snake, setSnake] = useState<GridItem[]>([{ row: 1, col: 1 }]);
   const [food, setFood] = useState<GridItem>({ row: 3, col: 3 }); // TODO: Randomize food position.
   const [isGameOver, setIsGameOver] = useState(false);
+  const gameDelayMs = useRef(START_DELAY);
   const arrowPress = useArrowKeyPress();
 
   const handleRestart = () => {
     setSnake([{ row: 1, col: 1 }]);
     setFood({ row: 3, col: 3 });
     setIsGameOver(false);
+    gameDelayMs.current = START_DELAY;
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" })); // Keep initial direction consistent
   };
 
@@ -90,6 +92,10 @@ const GameBoard: React.FC = () => {
         const tail = { ...snake[snake.length - 1] }; // Use prev state so looks like snake is growing.
         newSnake.push(tail);
         updateFoodPosRandom();
+
+        if (gameDelayMs.current >= MIN_DELAY) {
+          gameDelayMs.current -= 50;
+        }
       } else if (didHitWall(newSnake[0])) {
         setIsGameOver(true);
       }
@@ -98,7 +104,7 @@ const GameBoard: React.FC = () => {
     };
 
     // Init game interval.
-    const gameInterval = setInterval(handleGameTick, 500);
+    const gameInterval = setInterval(handleGameTick, gameDelayMs.current);
 
     return () => clearInterval(gameInterval);
   }, [updateSnakePos, food, snake, isGameOver]);
