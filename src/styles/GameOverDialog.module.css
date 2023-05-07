@@ -1,0 +1,6 @@
+.container {
+  position: absolute;
+  padding: 16px;
+  background-color: var(--bg-color-primary);
+  border: 1px solid yellow;
+}

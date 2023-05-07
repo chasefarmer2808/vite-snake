@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import GameGrid from "./GameGrid";
 import useArrowKeyPress, { Direction } from "./hooks/useArrowKeyPress";
 import { BOARD_SIZE } from "./const";
+import GameOverDialog from "./GameOverDialog";
+import classes from "./styles/GameBoard.module.css";
 
 export interface GridItem {
   row: number;
@@ -15,7 +17,14 @@ const getRandomInt = (max: number): number => {
 const GameBoard: React.FC = () => {
   const [snake, setSnake] = useState<GridItem[]>([{ row: 1, col: 1 }]);
   const [food, setFood] = useState<GridItem>({ row: 3, col: 3 }); // TODO: Randomize food position.
+  const [isGameOver, setIsGameOver] = useState(false);
   const arrowPress = useArrowKeyPress();
+
+  const handleRestart = () => {
+    setSnake([{ row: 1, col: 1 }]);
+    setFood({ row: 3, col: 3 });
+    setIsGameOver(false);
+  };
 
   const updateSnakePos = useCallback(
     (oldSnake: GridItem[]) => {
@@ -56,6 +65,15 @@ const GameBoard: React.FC = () => {
       return snakeHead.row == food.row && snakeHead.col == food.col;
     };
 
+    const didHitWall = (snakeHead: GridItem): boolean => {
+      return (
+        snakeHead.row >= BOARD_SIZE ||
+        snakeHead.col >= BOARD_SIZE ||
+        snakeHead.row <= 0 ||
+        snakeHead.col <= 0
+      );
+    };
+
     const updateFoodPosRandom = () => {
       setFood({
         row: getRandomInt(BOARD_SIZE - 1),
@@ -64,28 +82,32 @@ const GameBoard: React.FC = () => {
     };
 
     const handleGameTick = () => {
-      setSnake((s) => {
-        const newSnake = updateSnakePos(s);
+      if (isGameOver) return;
+      const newSnake = updateSnakePos(snake);
 
-        if (didEatFood(newSnake[0], food)) {
-          const tail = { ...s[s.length - 1] }; // Use prev state so looks like snake is growing.
-          newSnake.push(tail);
-          updateFoodPosRandom();
-        }
+      if (didEatFood(newSnake[0], food)) {
+        const tail = { ...snake[snake.length - 1] }; // Use prev state so looks like snake is growing.
+        newSnake.push(tail);
+        updateFoodPosRandom();
+      } else if (didHitWall(newSnake[0])) {
+        setIsGameOver(true);
+      }
 
-        return newSnake;
-      });
+      setSnake(newSnake);
     };
 
     // Init game interval.
-    const gameInterval = setInterval(handleGameTick, 1000);
+    const gameInterval = setInterval(handleGameTick, 500);
 
     return () => clearInterval(gameInterval);
-  }, [updateSnakePos, food, snake]);
+  }, [updateSnakePos, food, snake, isGameOver]);
 
   return (
-    <main>
+    <main className={classes.gameFrame}>
       <GameGrid snake={snake} food={food} />
+      {isGameOver && (
+        <GameOverDialog finalScore={snake.length} onRestart={handleRestart} />
+      )}
     </main>
   );
 };

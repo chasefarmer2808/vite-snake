@@ -5,11 +5,10 @@
   --breakpoint-md: 550px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
+  --bg-color-primary: #242424;
 }
 
 #root {
-  font-size: 10px;
-  line-height: 1.5;
   width: 100vw;
   height: 100vh;
 }
