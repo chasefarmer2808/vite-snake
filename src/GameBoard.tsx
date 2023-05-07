@@ -1,144 +1,112 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import GameGrid from "./GameGrid";
 import useArrowKeyPress, { Direction } from "./hooks/useArrowKeyPress";
+import { BOARD_SIZE } from "./const";
 
-const BOARD_SIZE = 15;
-
-export interface GridCell {
-  row: number;
-  col: number;
-  hasSnake: boolean;
-  hasFood: boolean;
-}
-
-interface SnakePiece {
-  row: number;
-  col: number;
-}
-
-interface FoodPiece {
+export interface GridItem {
   row: number;
   col: number;
 }
 
 // Eventually, this can take a difficulty to change the size of the grid.
-const createInitialGrid = () => {
-  const grid = Array<GridCell[]>();
+// const createInitialGrid = () => {
+//   const grid = Array<GridCell[]>();
 
-  for (let i = 0; i < BOARD_SIZE; i++) {
-    const row = Array<GridCell>();
+//   for (let i = 0; i < BOARD_SIZE; i++) {
+//     const row = Array<GridCell>();
 
-    for (let j = 0; j < BOARD_SIZE; j++) {
-      row.push({
-        row: i,
-        col: j,
-        hasSnake: false,
-        hasFood: false,
-      });
-    }
+//     for (let j = 0; j < BOARD_SIZE; j++) {
+//       row.push({
+//         row: i,
+//         col: j,
+//         hasSnake: false,
+//         hasFood: false,
+//       });
+//     }
 
-    grid.push(row);
-  }
-  return grid;
-};
+//     grid.push(row);
+//   }
+//   return grid;
+// };
 
 const getRandomInt = (max: number): number => {
   return Math.floor(Math.random() * max);
 };
 
 const GameBoard: React.FC = () => {
-  const [grid, setGrid] = useState<GridCell[][]>(createInitialGrid());
-  const snakeRef = useRef<SnakePiece[]>([
-    { row: 1, col: 1 },
-    { row: 1, col: 0 },
-  ]);
-  const foodRef = useRef<FoodPiece>({ row: 3, col: 3 }); // TODO: Randomize food position.
+  const [snake, setSnake] = useState<GridItem[]>([{ row: 1, col: 1 }]);
+  const [food, setFood] = useState<GridItem>({ row: 3, col: 3 }); // TODO: Randomize food position.
   const arrowPress = useArrowKeyPress();
 
-  const updateSnakePos = useCallback(() => {
-    snakeRef.current = snakeRef.current.map((piece, index) => {
-      const newPiece = { ...piece };
-
-      if (index == 0) {
-        // First, move head based on dir.
-        switch (arrowPress.current) {
-          case Direction.Left:
-            newPiece.col--;
-            break;
-          case Direction.Right:
-            newPiece.col++;
-            break;
-          case Direction.Up:
-            newPiece.row--;
-            break;
-          case Direction.Down:
-            newPiece.row++;
-            break;
-          default:
-            break;
+  const updateSnakePos = useCallback(
+    (oldSnake: GridItem[]) => {
+      return oldSnake.map((piece, index) => {
+        const newPiece = { ...piece };
+        if (index == 0) {
+          // First, move head based on dir.
+          switch (arrowPress.current) {
+            case Direction.Left:
+              newPiece.col--;
+              break;
+            case Direction.Right:
+              newPiece.col++;
+              break;
+            case Direction.Up:
+              newPiece.row--;
+              break;
+            case Direction.Down:
+              newPiece.row++;
+              break;
+            default:
+              break;
+          }
+        } else {
+          // Next, move all child pieces to its parent's previous location.
+          newPiece.row = oldSnake[index - 1].row;
+          newPiece.col = oldSnake[index - 1].col;
         }
-      } else {
-        // Next, move all child pieces to its parent's previous location.
-        newPiece.row = snakeRef.current[index - 1].row;
-        newPiece.col = snakeRef.current[index - 1].col;
-      }
-      return newPiece;
-    });
-  }, [arrowPress]);
 
-  const updateFoodPosRandom = useCallback(() => {
-    foodRef.current = {
-      row: getRandomInt(grid.length - 1),
-      col: getRandomInt(grid.length - 1),
-    };
-  }, [grid.length]);
+        return newPiece;
+      });
+    },
+    [arrowPress]
+  );
 
   useEffect(() => {
-    const didEatFood = (): boolean => {
-      const snakeHead = snakeRef.current[0];
-      return (
-        snakeHead.row == foodRef.current.row &&
-        snakeHead.col == foodRef.current.col
-      );
+    const didEatFood = (snakeHead: GridItem, food: GridItem): boolean => {
+      return snakeHead.row == food.row && snakeHead.col == food.col;
+    };
+
+    const updateFoodPosRandom = () => {
+      setFood({
+        row: getRandomInt(BOARD_SIZE - 1),
+        col: getRandomInt(BOARD_SIZE - 1),
+      });
     };
 
     const handleGameTick = () => {
-      const tail = { ...snakeRef.current[snakeRef.current.length - 1] };
-      updateSnakePos();
+      setSnake((s) => {
+        const newSnake = updateSnakePos(s);
 
-      if (didEatFood()) {
-        snakeRef.current.push(tail);
-        updateFoodPosRandom();
-      }
+        if (didEatFood(newSnake[0], food)) {
+          const tail = { ...s[s.length - 1] }; // Use prev state so looks like snake is growing.
+          newSnake.push(tail);
+          updateFoodPosRandom();
+        }
 
-      setGrid((prevGrid) =>
-        prevGrid.map((gridRow) =>
-          gridRow.map((gridCell) => {
-            const hasSnake =
-              snakeRef.current.filter(
-                (piece) =>
-                  piece.row == gridCell.row && piece.col == gridCell.col
-              ).length == 1;
-
-            const hasFood =
-              foodRef.current.row == gridCell.row &&
-              foodRef.current.col == gridCell.col;
-
-            return { ...gridCell, hasSnake, hasFood };
-          })
-        )
-      );
+        return newSnake;
+      });
     };
 
     // Init game interval.
-    const gameInterval = setInterval(handleGameTick, 500);
+    const gameInterval = setInterval(handleGameTick, 1000);
 
     return () => clearInterval(gameInterval);
-  }, [updateSnakePos, updateFoodPosRandom]);
+  }, [updateSnakePos, food, snake]);
 
   return (
     <main>
-      <GameGrid grid={grid} />
+      <GameGrid snake={snake} food={food} />
     </main>
   );
 };

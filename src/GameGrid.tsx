@@ -1,14 +1,15 @@
+import { GridItem } from "./GameBoard";
 import GridBox from "./GridBox";
+import { BOARD_SIZE } from "./const";
 
 import classes from "./styles/GameGrid.module.css";
-import { GridCell } from "./GameBoard";
 
 interface Props {
-  grid: GridCell[][];
+  snake: GridItem[];
+  food: GridItem;
 }
 
-const GameGrid: React.FC<Props> = ({ grid }) => {
-  const boardSize = grid.length;
+const GameGrid = ({ snake, food }: Props) => {
   // // Detect game over.
   // useEffect(() => {
   //   if (didHitWall(snake, gridRef.current)) {
@@ -25,22 +26,30 @@ const GameGrid: React.FC<Props> = ({ grid }) => {
   //   );
   // };
 
+  const cells = Array<React.ReactNode>([]);
+
+  for (let i = 0; i < BOARD_SIZE; i++) {
+    for (let j = 0; j < BOARD_SIZE; j++) {
+      const isSnake = snake.some(({ row, col }) => row === i && col === j);
+      const isFood = food.row === i && food.col === j;
+      cells.push(
+        <GridBox
+          key={`${i},${j}`}
+          row={i}
+          col={j}
+          hasSnakePiece={isSnake}
+          hasFood={isFood}
+        />
+      );
+    }
+  }
+
   return (
     <div
       className={classes.gameGrid}
-      style={{ gridTemplateColumns: `repeat(${boardSize}, auto)` }}
+      style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, auto)` }}
     >
-      {grid.map((gridRow, row) =>
-        gridRow.map((gridCell, col) => (
-          <GridBox
-            key={`${gridCell.row},${gridCell.col}`}
-            row={row}
-            col={col}
-            hasSnakePiece={gridCell.hasSnake}
-            hasFood={gridCell.hasFood}
-          />
-        ))
-      )}
+      {cells}
     </div>
   );
 };
