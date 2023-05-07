@@ -8,27 +8,6 @@ export interface GridItem {
   col: number;
 }
 
-// Eventually, this can take a difficulty to change the size of the grid.
-// const createInitialGrid = () => {
-//   const grid = Array<GridCell[]>();
-
-//   for (let i = 0; i < BOARD_SIZE; i++) {
-//     const row = Array<GridCell>();
-
-//     for (let j = 0; j < BOARD_SIZE; j++) {
-//       row.push({
-//         row: i,
-//         col: j,
-//         hasSnake: false,
-//         hasFood: false,
-//       });
-//     }
-
-//     grid.push(row);
-//   }
-//   return grid;
-// };
-
 const getRandomInt = (max: number): number => {
   return Math.floor(Math.random() * max);
 };
