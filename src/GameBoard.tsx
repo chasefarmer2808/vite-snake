@@ -78,10 +78,17 @@ const GameBoard: React.FC = () => {
     };
 
     const updateFoodPosRandom = () => {
-      setFood({
-        row: getRandomInt(BOARD_SIZE - 1),
-        col: getRandomInt(BOARD_SIZE - 1),
-      });
+      const freeCells: GridItem[] = [];
+
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        for (let j = 0; j < BOARD_SIZE; j++) {
+          if (!snake.some((piece) => piece.row == i && piece.col == j)) {
+            freeCells.push({ row: i, col: j });
+          }
+        }
+      }
+
+      setFood(freeCells[getRandomInt(freeCells.length - 1)]);
     };
 
     const handleGameTick = () => {
