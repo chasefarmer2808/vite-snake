@@ -72,8 +72,8 @@ const GameBoard: React.FC = () => {
       return (
         snakeHead.row >= BOARD_SIZE ||
         snakeHead.col >= BOARD_SIZE ||
-        snakeHead.row <= 0 ||
-        snakeHead.col <= 0
+        snakeHead.row < 0 ||
+        snakeHead.col < 0
       );
     };
 
